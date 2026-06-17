@@ -1,0 +1,29 @@
+{
+    "name": "nomad-rates",
+    "version": "0.1.0",
+    "description": "Nomad rates - Professional library for KG SOM currency rates and conversion",
+    "type": "module",
+    "main": "src/index.mjs",
+    "types": "src/types.d.ts",
+    "exports": {
+        ".": {
+            "types": "./src/types.d.ts",
+            "import": "./src/index.mjs"
+        }
+    },
+    "dependencies": {
+        "xml2js": "^0.6.2"
+    },
+    "author": "Nomad",
+    "license": "ISC",
+    "files": [
+        "src/"
+    ],
+    "keywords": [
+        "currency",
+        "nbkr",
+        "kyrgyzsrepublic",
+        "converter",
+        "finance"
+    ]
+}

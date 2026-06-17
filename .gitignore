@@ -1,0 +1,28 @@
+# IDE and Editor configurations
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Dependency folder (never commit this)
+node_modules/
+
+# Logs
+npm-debug.log
+*.log
+
+# Environment variables (contains secrets, never commit this)
+.env
+
+# System files (macOS/Windows)
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Build output directories (if you decide to bundle your code later)
+dist/
+build/
