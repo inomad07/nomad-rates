@@ -1,20 +1,26 @@
-import { parseStringPromise } from "xml2js";
+import { XMLParser } from "fast-xml-parser";
 import { formatCurrencyDataFromXML } from "../utils/xmlFormatter.mjs";
 
-function fetchXmlText(url) {
-    return fetch(url).then((response) => {
-        if (!response.ok)
-            throw new Error(`HTTP error: status ${response.status}`);
-        return response.text();
-    });
+async function fetchXmlText(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error: status ${response.status}`);
+    return await response.text();
 }
 
-export function fetchAndParseXmlData(url) {
-    return Promise.try(() => fetchXmlText(url))
-        .then((xmlString) => parseStringPromise(xmlString))
-        .then((parsedData) => formatCurrencyDataFromXML(parsedData))
-        .catch((error) => {
-            console.error("Error while fetching or parsing XML:", error);
-            throw error;
+export async function fetchAndParseXmlData(url) {
+    try {
+        const xmlString = await fetchXmlText(url);
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: "",
         });
+
+        const parsedData = parser.parse(xmlString);
+
+        return formatCurrencyDataFromXML(parsedData);
+    } catch (error) {
+        console.error("Error while fetching or parsing XML:", error);
+        throw error;
+    }
 }

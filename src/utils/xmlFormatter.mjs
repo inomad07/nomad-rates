@@ -1,18 +1,15 @@
-export function formatCurrencyDataFromXML({ CurrencyRates }) {
-    const title = CurrencyRates.$.Name;
-    const date = CurrencyRates.$.Date;
+export function formatCurrencyDataFromXML(data) {
+    const { CurrencyRates } = data;
 
-    const currencies = CurrencyRates.Currency.map(
-        ({ $: { ISOCode }, Nominal, Value }) => ({
-            ISOCode,
-            nominal: Nominal[0],
-            rate: Value[0],
-        }),
-    );
+    const currencies = CurrencyRates.Currency.map((item) => ({
+        ISOCode: item.ISOCode,
+        nominal: item.Nominal,
+        rate: item.Value,
+    }));
 
     return {
-        title,
-        date,
+        title: CurrencyRates.Name,
+        date: CurrencyRates.Date,
         currencies,
     };
 }
