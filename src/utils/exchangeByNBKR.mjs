@@ -1,39 +1,29 @@
 import { fetchAndParseXmlData } from "../services/nbkr.mjs";
 import { calculateExchange } from "./currencyConverter.mjs";
+import { normalizeExchangeData } from "./currencyNormalizer.mjs";
 import {
-    findCurrency,
-    findCurrencyByCode,
-    normalizeCurrencyCode,
-} from "./currencyFormatter.mjs";
-import { CURRENCY_RATES_NBKR_URL } from "../constants/index.mjs";
+	NBKR_DAILY_RATES_URL,
+	NBKR_WEEKLY_RATES_URL,
+} from "../constants/index.mjs";
 
-function normalizeExchangeData(currencies, inputData) {
-    const { currencyAmount, currencyCode } = inputData;
-    const isoCode = normalizeCurrencyCode(currencyCode);
+async function processExchange(url, inputData) {
+	const { currencies } = await fetchAndParseXmlData(url);
 
-    if (!findCurrency(isoCode)) {
-        return { error: "Currency not found in DB!" };
-    }
+	const rates = normalizeExchangeData(currencies, inputData);
 
-    const { rate } = findCurrencyByCode(currencies, isoCode);
+	if (rates.error) return rates;
 
-    return {
-        exchangeRate: rate,
-        currencyAmount,
-        currencyCode: isoCode,
-    };
+	return calculateExchange({
+		...rates,
+		from: inputData.from,
+		to: inputData.to,
+	});
 }
 
-export async function exchangeByNBKR(inputData) {
-    const { currencies } = await fetchAndParseXmlData(CURRENCY_RATES_NBKR_URL);
+export function exchangeByNBKR(inputData) {
+	return processExchange(NBKR_DAILY_RATES_URL, inputData);
+}
 
-    const rates = normalizeExchangeData(currencies, inputData);
-
-    if (rates.error) return rates;
-
-    return calculateExchange({
-        ...rates,
-        from: inputData.from,
-        to: inputData.to,
-    });
+export function exchangeByNBKRWeekly(inputData) {
+	return processExchange(NBKR_WEEKLY_RATES_URL, inputData);
 }
