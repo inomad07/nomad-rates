@@ -1,3 +1,6 @@
-export { exchangeByNBKR } from "./utils/exchangeByNBKR.mjs";
+export {
+	exchangeByNBKR,
+	exchangeByNBKRWeekly,
+} from "./utils/exchangeByNBKR.mjs";
 export { exchangeByCustom } from "./utils/exchangeByCustom.mjs";
-export { getAvailableCurrencyCodes } from "./utils/currencyFormatter.mjs";
+export { SUPPORTED_CURRENCIES, Currency } from "./constants/index.mjs";

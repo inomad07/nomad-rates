@@ -1,24 +1,26 @@
-import { prepareNumber, formatNumberPrecision } from "./currencyFormatter.mjs";
-import { DEFAULT_CURRENCY } from "../constants/index.mjs";
+import { formatNumberPrecision } from "./currencyFormatter.mjs";
+import { DEFAULT_CURRENCY, DEFAULT_NOMINAL } from "../constants/index.mjs";
 
-function convertToDefaultCurrency(rate, amount) {
-    return formatNumberPrecision(prepareNumber(rate) * prepareNumber(amount));
+function convertToDefaultCurrency(rate, amount, nominal = DEFAULT_NOMINAL) {
+	const effectiveRate = rate / nominal;
+	return formatNumberPrecision(effectiveRate * amount);
 }
 
-function convertToTargetCurrency(rate, amount) {
-    return formatNumberPrecision(prepareNumber(amount) / prepareNumber(rate));
+function convertToTargetCurrency(rate, amount, nominal = DEFAULT_NOMINAL) {
+	const effectiveRate = rate / nominal;
+	return formatNumberPrecision(amount / effectiveRate);
 }
 
 export function calculateExchange(data) {
-    const isToDefault = data.to === DEFAULT_CURRENCY;
-    const currencyCode = isToDefault ? DEFAULT_CURRENCY : data.to;
+	const isToDefault = data.to === DEFAULT_CURRENCY;
+	const currencyCode = isToDefault ? DEFAULT_CURRENCY : data.to;
 
-    const calculate = isToDefault
-        ? convertToDefaultCurrency
-        : convertToTargetCurrency;
+	const calculate = isToDefault
+		? convertToDefaultCurrency
+		: convertToTargetCurrency;
 
-    return {
-        result: calculate(data.exchangeRate, data.currencyAmount),
-        currencyCode,
-    };
+	return {
+		result: calculate(data.exchangeRate, data.currencyAmount, data.nominal),
+		currencyCode,
+	};
 }

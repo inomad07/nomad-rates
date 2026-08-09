@@ -8,12 +8,12 @@ A lightweight, ESM-native JavaScript library for currency conversion. Get real-t
 
 ## Features
 
-| Feature           | Description                                                                                                     |
-| ----------------- | --------------------------------------------------------------------------------------------------------------- |
-| 🔄 Smart API      | Automatically detects conversion direction based on the provided currency pair (`from` → `to`).                 |
-| 🏦 Official Rates | Fetches real-time exchange rates directly from [nbkr.kg](https://www.nbkr.kg/).                                 |
-| ⚙️ Custom Rates   | Convert using your own manually defined exchange rates — ideal for internal accounting or margin-based pricing. |
-| 📦 ESM-ready      | Native ES Module support with zero dependencies.                                                                |
+| Feature            | Description                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------- |
+| 🔄 Smart API       | Automatically detects conversion direction based on the provided currency pair (`from` → `to`).      |
+| 🏦 Daily Rates     | Fetches main currency rates (USD, EUR, RUB, KZT, CNY) directly from [nbkr.kg](https://www.nbkr.kg/). |
+| 📅 Weekly Rates    | Extended support for **40+ global currencies** via `exchangeByNBKRWeekly`.                           |
+| 🧮 Nominal Support | Automatically accounts for currency nominals (e.g., KZT with a nominal of 100) for zero math errors. |
 
 ## Installation
 
@@ -25,75 +25,88 @@ npm install nomad-rates
 
 ```js
 import {
-    exchangeByNBKR,
-    exchangeByCustom,
-    getAvailableCurrencyCodes,
+	exchangeByNBKR,
+	exchangeByNBKRWeekly,
+	exchangeByCustom,
+	SUPPORTED_CURRENCIES,
+	Currency,
 } from "nomad-rates";
 
 // ── Official NBKR rates ────────────────────────────────────────
 const result = await exchangeByNBKR({
-    from: "USD",
-    to: "KGS",
-    amount: 100,
+	from: "USD",
+	to: "KGS",
+	currencyAmount: 100,
 });
 console.log(result); // => { amount: 100, from: "USD", to: "KGS", rate: 89.35, converted: 8935 }
 
+// ── Official NBKR Weekly rates (Extended 40+ currencies) ────────
+const weeklyResult = await exchangeByNBKRWeekly({
+	from: "GBP",
+	to: "KGS",
+	currencyAmount: "100,50", // Поддерживает строки и запятые
+});
+console.log(weeklyResult);
+
 // ── Custom rates ───────────────────────────────────────────────
 const customResult = exchangeByCustom({
-    from: "KGS",
-    to: "EUR",
-    amount: 1000,
-    rate: 95.5,
+	from: "KGS",
+	to: "EUR",
+	currencyAmount: 1000,
+	exchangeRate: 95.5,
 });
-console.log(customResult); // => { amount: 1000, from: "KGS", to: "EUR", rate: 95.5, converted: 95500 }
+console.log(customResult); // => { currencyAmount: 1000, from: "KGS", to: "EUR", exchangeRate: 95.5, converted: 95500 }
 
-// ── Supported currencies ───────────────────────────────────────
-console.log(getAvailableCurrencyCodes());
+// ── Supported currencies & constants ───────────────────────────
+console.log(SUPPORTED_CURRENCIES);
 // => ["USD", "EUR", "KGS", "GBP", "RUB", ...]
+
+console.log(Currency.usd);
+// => "USD"
 ```
 
 ## API Reference
 
-### `exchangeByNBKR(inputData)`
+### `exchangeByNBKR(inputData)` & `exchangeByNBKRWeekly(inputData)`
 
 Fetches the latest rates from NBKR and performs a currency conversion.
 
-| Param    | Type     | Required | Description                          |
-| -------- | -------- | -------- | ------------------------------------ |
-| `from`   | `string` | Yes      | Source currency code (e.g., `"USD"`) |
-| `to`     | `string` | Yes      | Target currency code (e.g., `"KGS"`) |
-| `amount` | `number` | Yes      | Amount to convert                    |
+| Param            | Type            | Required | Description                                                     |
+| ---------------- | --------------- | -------- | --------------------------------------------------------------- |
+| `from`           | `string`        | Yes      | Source currency code (e.g., `"USD"`)                            |
+| `to`             | `string`        | Yes      | Target currency code (e.g., `"KGS"`)                            |
+| `currencyAmount` | `number/string` | Yes      | Amount to convert (accepts numbers or strings with dots/commas) |
+| `currencyCode`   | `string`        | No       | Legacy alias for from                                           |
 
 **Returns:** `Promise<ExchangeResult>`
 
 ```ts
 interface ExchangeResult {
-    amount: number; // original amount
-    from: string; // source currency code
-    to: string; // target currency code
-    rate: number; // applied exchange rate
-    converted: number; // converted amount
+	currencyAmount: number; // original amount
+	from: string; // source currency code
+	to: string; // target currency code
+	exchangeRate: number; // applied exchange rate
+	converted: number; // converted amount
 }
 ```
 
 ### `exchangeByCustom(inputData)`
 
-Converts an amount using a manually provided exchange rate.
+Converts an currencyAmount using a manually provided exchange rate.
 
-| Param    | Type     | Required | Description               |
-| -------- | -------- | -------- | ------------------------- |
-| `from`   | `string` | Yes      | Source currency code      |
-| `to`     | `string` | Yes      | Target currency code      |
-| `amount` | `number` | Yes      | Amount to convert         |
-| `rate`   | `number` | Yes      | Your custom exchange rate |
+| Param            | Type     | Required | Description               |
+| ---------------- | -------- | -------- | ------------------------- |
+| `from`           | `string` | Yes      | Source currency code      |
+| `to`             | `string` | Yes      | Target currency code      |
+| `currencyAmount` | `number` | Yes      | Amount to convert         |
+| `exchangeRate`   | `number` | Yes      | Your custom exchange rate |
 
 **Returns:** `ExchangeResult` (synchronous)
 
-### `getAvailableCurrencyCodes()`
+### Constants (`SUPPORTED_CURRENCIES`, `Currency`)
 
-Returns a static array of supported ISO 4217 currency codes.
-
-**Returns:** `string[]`
+-   `SUPPORTED_CURRENCIES`: A static array of supported ISO 4217 currency codes (`string[]`).
+-   `Currency`: A record/dictionary mapping lowercase keys to uppercase currency codes (e.g., `Currency.usd` -> `"USD"`).
 
 ## Warning
 
@@ -110,12 +123,12 @@ Call `exchangeByNBKR` from your backend, not from the browser. For example:
 import { exchangeByNBKR } from "nomad-rates";
 
 export default async function handler(req, res) {
-  const result = await exchangeByNBKR({
-    from: "USD",
-    to: "KGS",
-    amount: 1,
-  });
-  res.status(200).json(result);
+	const result = await exchangeByNBKR({
+		from: "USD",
+		to: "KGS",
+		currencyAmount: 1,
+	});
+	res.status(200).json(result);
 }
 ```
 
@@ -129,11 +142,11 @@ During local development you can bypass CORS by configuring a proxy in your dev 
 
 ```js
 export default {
-  server: {
-    proxy: {
-      "/api/rates": "http://localhost:3000", // forward to your backend
-    },
-  },
+	server: {
+		proxy: {
+			"/api/rates": "http://localhost:3000", // forward to your backend
+		},
+	},
 };
 ```
 
@@ -143,9 +156,9 @@ export default {
 
 NBKR publishes exchange rates **once per day**. There's no reason to fetch them on every user request. Cache the result on your server:
 
-- **In-memory** (`Map` / `SetTimeout`) — simplest; refresh on a cron or at startup
-- **Redis / Memcached** — for multi-instance deployments
-- **CDN edge cache** — with a long `stale-while-revalidate` TTL
+-   **In-memory** (`Map` / `SetTimeout`) — simplest; refresh on a cron or at startup
+-   **Redis / Memcached** — for multi-instance deployments
+-   **CDN edge cache** — with a long `stale-while-revalidate` TTL
 
 This reduces latency, avoids unnecessary dependency on NBKR's uptime, and protects against rate-limiting.
 
@@ -159,9 +172,9 @@ Contributions are welcome! If you've found a bug, have a feature request, or wan
 
 Please ensure your PR includes:
 
-- A clear description of the change
-- Tests covering new or modified behavior (when applicable)
-- Updated documentation for public API changes
+-   A clear description of the change
+-   Tests covering new or modified behavior (when applicable)
+-   Updated documentation for public API changes
 
 ## License
 

@@ -1,84 +1,169 @@
-import { exchangeByNBKR } from "../src/utils/exchangeByNBKR.mjs";
+import {
+	exchangeByNBKR,
+	exchangeByNBKRWeekly,
+} from "../src/utils/exchangeByNBKR.mjs";
 import { exchangeByCustom } from "../src/utils/exchangeByCustom.mjs";
-import { getAvailableCurrencyCodes } from "../src/utils/currencyFormatter.mjs";
+import { SUPPORTED_CURRENCIES, Currency } from "../src/constants/index.mjs";
 
-async function runTest() {
-    console.log("--- Starting conversion test ---");
+async function testDailyConversion() {
+	console.log("--- Starting daily conversion test ---");
 
-    // Simulate input data from user
-    const input = {
-        currencyAmount: "100", // 100 units
-        currencyCode: "USD", // currency code
-        from: "USD", // from currency
-        to: "KGS", // to currency
-    };
+	const inputUsd = {
+		currencyAmount: "100",
+		currencyCode: "USD",
+		from: "USD",
+		to: "KGS",
+	};
 
-    try {
-        console.log("Request:", input);
-        const result = await exchangeByNBKR(input);
-        console.log("Result:", result);
-    } catch (error) {
-        console.error("Testing error:", error.message);
-    }
+	const inputEur = {
+		currencyAmount: "100",
+		currencyCode: "EUR",
+		from: "EUR",
+		to: "KGS",
+	};
 
-    // EUR conversion test
-    const inputEur = {
-        currencyAmount: "100",
-        currencyCode: "EUR",
-        from: "EUR",
-        to: "KGS",
-    };
-    const resultEur = await exchangeByNBKR(inputEur);
-    console.log("Result for EUR:", resultEur);
+	try {
+		console.log("Request (USD):", inputUsd);
+		const resultUsd = await exchangeByNBKR(inputUsd);
+		console.log("Result for USD:", resultUsd);
+
+		const resultEur = await exchangeByNBKR(inputEur);
+		console.log("Result for EUR:", resultEur);
+
+		if (resultUsd?.result && resultEur?.result) {
+			console.log("Test passed: Daily rates converted successfully.");
+		} else {
+			console.log("Error: Invalid daily calculation result.");
+		}
+	} catch (error) {
+		console.error("Daily conversion test error:", error.message);
+	}
+}
+
+async function testWeeklyConversion() {
+	console.log("\n--- Starting weekly conversion test ---");
+
+	const inputWeekly = {
+		currencyAmount: "100",
+		currencyCode: "GBP",
+		from: "GBP",
+		to: "KGS",
+	};
+
+	try {
+		const result = await exchangeByNBKRWeekly(inputWeekly);
+		console.log("Weekly Result for GBP:", result);
+
+		if (result?.result) {
+			console.log("Test passed: Weekly rate converted successfully.");
+		} else {
+			console.log("Error: Invalid weekly calculation result.");
+		}
+	} catch (error) {
+		console.error("Weekly conversion test error:", error.message);
+	}
 }
 
 async function testCustomConversion() {
-    console.log("\n--- Starting custom conversion test ---");
+	console.log("\n--- Starting custom conversion test ---");
 
-    // Simulate a scenario with a manual exchange rate
-    // Note: 'currencyAmount' matches the internal calculation logic
-    const customInput = {
-        exchangeRate: "88.50", // Manual exchange rate
-        currencyAmount: "200", // Amount to convert
-        from: "USD",
-        to: "KGS",
-    };
+	const customInput = {
+		exchangeRate: "88.50",
+		currencyAmount: "200",
+		from: "USD",
+		to: "KGS",
+	};
 
-    try {
-        const { result } = exchangeByCustom(customInput);
-        console.log("Custom calculation:", result);
+	const customGbpInput = {
+		exchangeRate: "117,50",
+		currencyAmount: "100",
+		from: "GBP",
+		to: "KGS",
+	};
 
-        // Verification: 200 * 88.50 = 17700
-        if (result === 17700) {
-            console.log("Test passed successfully!");
-        } else {
-            console.log("Error: expected 17700, but got", result);
-        }
-    } catch (error) {
-        console.error("Custom test error:", error.message);
-    }
+	const customKztInput = {
+		exchangeRate: "18.50",
+		currencyAmount: "5000",
+		nominal: "100",
+		from: "KZT",
+		to: "KGS",
+	};
+
+	try {
+		const { result: resUsd } = exchangeByCustom(customInput);
+		console.log("Custom USD calculation (200 * 88.50):", resUsd);
+
+		const { result: resGbp } = exchangeByCustom(customGbpInput);
+		console.log("Custom GBP calculation (100 * 117.50):", resGbp);
+
+		const { result: resKzt } = exchangeByCustom(customKztInput);
+		console.log("Custom KZT calculation (5000 / 100 * 18.50):", resKzt);
+
+		const isUsdOk = resUsd === 17700;
+		const isGbpOk = resGbp === 11750;
+		const isKztOk = resKzt === 925;
+
+		if (isUsdOk && isGbpOk && isKztOk) {
+			console.log(
+				"Test passed: Custom calculations processed successfully."
+			);
+		} else {
+			console.log("Error in calculations:", { resUsd, resGbp, resKzt });
+		}
+	} catch (error) {
+		console.error("Custom test error:", error.message);
+	}
 }
 
-// Function to test the retrieval of supported currency codes
-function testCurrencyCodes() {
-    console.log("\n--- Starting currency codes test ---");
+function testSupportedCurrencies() {
+	console.log("\n--- Starting Supported Currencies Test ---");
+	console.log("SUPPORTED_CURRENCIES:", SUPPORTED_CURRENCIES);
 
-    const codes = getAvailableCurrencyCodes();
-    console.log("Available currency codes:", codes);
-
-    // Check if the output is a non-empty string
-    if (codes && typeof codes === "string") {
-        console.log("Test passed: Codes retrieved successfully.");
-    } else {
-        console.log("Error: Failed to retrieve currency codes.");
-    }
+	if (
+		Array.isArray(SUPPORTED_CURRENCIES) &&
+		SUPPORTED_CURRENCIES.length > 0
+	) {
+		console.log(
+			`Supported currencies: ${SUPPORTED_CURRENCIES.length} - ✔ Test passed: SUPPORTED_CURRENCIES is a valid non-empty array.`
+		);
+	} else {
+		console.error(
+			"✖ Error: SUPPORTED_CURRENCIES array is invalid or empty."
+		);
+	}
 }
 
-// Run all test scenarios
+function testCurrencyObject() {
+	console.log("\n--- Starting Currency Object Test ---");
+	console.log("Currency lookup samples:", {
+		usd: Currency.usd,
+		eur: Currency.eur,
+		kzt: Currency.kzt,
+		kgs: Currency.kgs,
+	});
+
+	if (
+		Currency.usd === "USD" &&
+		Currency.eur === "EUR" &&
+		Currency.kzt === "KZT" &&
+		Currency.kgs === "KGS"
+	) {
+		console.log(
+			`Supported currencies: ${
+				Object.keys(Currency).length
+			} - ✔ Test passed: Currency lookup object works correctly.`
+		);
+	} else {
+		console.error("✖ Error: Currency lookup object failed.");
+	}
+}
+
 async function main() {
-    await runTest();
-    await testCustomConversion();
-    testCurrencyCodes();
+	await testDailyConversion();
+	await testWeeklyConversion();
+	await testCustomConversion();
+	testSupportedCurrencies();
+	testCurrencyObject();
 }
 
 main();
