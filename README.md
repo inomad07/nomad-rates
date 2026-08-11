@@ -38,15 +38,15 @@ const result = await exchangeByNBKR({
 	to: "KGS",
 	currencyAmount: 100,
 });
-console.log(result); // => { amount: 100, from: "USD", to: "KGS", rate: 89.35, converted: 8935 }
+console.log(result); // => { currencyAmount: 100, from: "USD", to: "KGS", exchangeRate: 87.45, converted: 8745 }
 
 // ── Official NBKR Weekly rates (Extended 40+ currencies) ────────
 const weeklyResult = await exchangeByNBKRWeekly({
 	from: "GBP",
 	to: "KGS",
-	currencyAmount: "100,50", // Поддерживает строки и запятые
+	currencyAmount: "100,50",
 });
-console.log(weeklyResult);
+console.log(weeklyResult); // => { currencyAmount: "100,50", from: "GBP", to: "KGS", exchangeRate: 117.559, converted: 11814.68 }
 
 // ── Custom rates ───────────────────────────────────────────────
 const customResult = exchangeByCustom({
@@ -61,7 +61,7 @@ console.log(customResult); // => { currencyAmount: 1000, from: "KGS", to: "EUR",
 console.log(SUPPORTED_CURRENCIES);
 // => ["USD", "EUR", "KGS", "GBP", "RUB", ...]
 
-console.log(Currency.usd);
+console.log(Currency.USD);
 // => "USD"
 ```
 
@@ -106,7 +106,7 @@ Converts an currencyAmount using a manually provided exchange rate.
 ### Constants (`SUPPORTED_CURRENCIES`, `Currency`)
 
 -   `SUPPORTED_CURRENCIES`: A static array of supported ISO 4217 currency codes (`string[]`).
--   `Currency`: A record/dictionary mapping lowercase keys to uppercase currency codes (e.g., `Currency.usd` -> `"USD"`).
+-   `Currency`: A record/dictionary mapping currency codes to themselves in uppercase (e.g., `Currency.USD` -> `"USD"`).
 
 ## Warning
 

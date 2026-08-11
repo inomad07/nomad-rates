@@ -136,17 +136,17 @@ function testSupportedCurrencies() {
 function testCurrencyObject() {
 	console.log("\n--- Starting Currency Object Test ---");
 	console.log("Currency lookup samples:", {
-		usd: Currency.usd,
-		eur: Currency.eur,
-		kzt: Currency.kzt,
-		kgs: Currency.kgs,
+		USD: Currency.USD,
+		EUR: Currency.EUR,
+		KZT: Currency.KZT,
+		KGS: Currency.KGS,
 	});
 
 	if (
-		Currency.usd === "USD" &&
-		Currency.eur === "EUR" &&
-		Currency.kzt === "KZT" &&
-		Currency.kgs === "KGS"
+		Currency.USD === "USD" &&
+		Currency.EUR === "EUR" &&
+		Currency.KZT === "KZT" &&
+		Currency.KGS === "KGS"
 	) {
 		console.log(
 			`Supported currencies: ${

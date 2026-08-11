@@ -57,6 +57,6 @@ export const SUPPORTED_CURRENCIES = [
 ];
 
 export const Currency = SUPPORTED_CURRENCIES.reduce((acc, code) => {
-	acc[code.toLowerCase()] = code;
+	acc[code] = code;
 	return acc;
 }, {});

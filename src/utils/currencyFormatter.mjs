@@ -3,11 +3,11 @@ export function replaceCommasWithDots(stringAmount) {
 }
 
 export function prepareNumber(stringifiedNumber) {
-	return parseFloat(replaceCommasWithDots(stringifiedNumber));
+	return Number(replaceCommasWithDots(stringifiedNumber));
 }
 
 export function formatNumberPrecision(number) {
-	return parseFloat(number.toFixed(2));
+	return Number(number).toFixed(3);
 }
 
 export function formatCurrencyCode(code) {
