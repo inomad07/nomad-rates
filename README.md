@@ -12,7 +12,7 @@ A lightweight, ESM-native JavaScript library for currency conversion. Get real-t
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
 | 🔄 Smart API       | Automatically detects conversion direction based on the provided currency pair (`from` → `to`).      |
 | 🏦 Daily Rates     | Fetches main currency rates (USD, EUR, RUB, KZT, CNY) directly from [nbkr.kg](https://www.nbkr.kg/). |
-| 📅 Weekly Rates    | Extended support for **40+ global currencies** via `exchangeByNBKRWeekly`.                           |
+| 📅 Weekly Rates    | Extended support for 40+ global currencies via weekly XML endpoints.                                 |
 | 🧮 Nominal Support | Automatically accounts for currency nominals (e.g., KZT with a nominal of 100) for zero math errors. |
 
 ## Installation
@@ -25,37 +25,43 @@ npm install nomad-rates
 
 ```js
 import {
-	exchangeByNBKR,
-	exchangeByNBKRWeekly,
-	exchangeByCustom,
+	getDailyRates,
+	getWeeklyRates,
+	exchangeCurrency,
 	SUPPORTED_CURRENCIES,
 	Currency,
 } from "nomad-rates";
 
 // ── Official NBKR rates ────────────────────────────────────────
-const result = await exchangeByNBKR({
+const dailyData = await getDailyRates();
+
+const dailyResult = exchangeCurrency({
 	from: "USD",
 	to: "KGS",
 	currencyAmount: 100,
+	currencies: dailyData.currencies,
 });
-console.log(result); // => { currencyAmount: 100, from: "USD", to: "KGS", exchangeRate: 87.45, converted: 8745 }
+console.log(dailyResult); // => { result: "8745.000", currencyCode: "KGS" }
 
 // ── Official NBKR Weekly rates (Extended 40+ currencies) ────────
-const weeklyResult = await exchangeByNBKRWeekly({
+const weeklyData = await getWeeklyRates();
+
+const weeklyResult = exchangeCurrency({
 	from: "GBP",
 	to: "KGS",
 	currencyAmount: "100,50",
+	currencies: weeklyData.currencies,
 });
-console.log(weeklyResult); // => { currencyAmount: "100,50", from: "GBP", to: "KGS", exchangeRate: 117.559, converted: 11814.68 }
+console.log(weeklyResult); // => { result: "11814.677", currencyCode: "KGS" }
 
 // ── Custom rates ───────────────────────────────────────────────
-const customResult = exchangeByCustom({
+const customResult = exchangeCurrency({
 	from: "KGS",
 	to: "EUR",
 	currencyAmount: 1000,
 	exchangeRate: 95.5,
 });
-console.log(customResult); // => { currencyAmount: 1000, from: "KGS", to: "EUR", exchangeRate: 95.5, converted: 95500 }
+console.log(customResult); // => { result: "10.471", currencyCode: "EUR" }
 
 // ── Supported currencies & constants ───────────────────────────
 console.log(SUPPORTED_CURRENCIES);
@@ -67,41 +73,51 @@ console.log(Currency.USD);
 
 ## API Reference
 
-### `exchangeByNBKR(inputData)` & `exchangeByNBKRWeekly(inputData)`
+### `getDailyRates()` & `getWeeklyRates()`
 
-Fetches the latest rates from NBKR and performs a currency conversion.
+Fetches and parses the latest exchange rates directly from the NBKR XML endpoints.
 
-| Param            | Type            | Required | Description                                                     |
-| ---------------- | --------------- | -------- | --------------------------------------------------------------- |
-| `from`           | `string`        | Yes      | Source currency code (e.g., `"USD"`)                            |
-| `to`             | `string`        | Yes      | Target currency code (e.g., `"KGS"`)                            |
-| `currencyAmount` | `number/string` | Yes      | Amount to convert (accepts numbers or strings with dots/commas) |
-| `currencyCode`   | `string`        | No       | Legacy alias for from                                           |
-
-**Returns:** `Promise<ExchangeResult>`
+**Returns:** `Promise<RateResponse>`
 
 ```ts
-interface ExchangeResult {
-	currencyAmount: number; // original amount
-	from: string; // source currency code
-	to: string; // target currency code
-	exchangeRate: number; // applied exchange rate
-	converted: number; // converted amount
+interface RateResponse {
+	title: string;
+	date: string;
+	currencies: Array<{
+		ISOCode: string;
+		nominal: number;
+		rate: string;
+	}>;
 }
 ```
 
-### `exchangeByCustom(inputData)`
+### `exchangeCurrency(options)`
 
-Converts an currencyAmount using a manually provided exchange rate.
+Performs currency conversion using either live NBKR rates or a manual custom exchange rate.
 
-| Param            | Type     | Required | Description               |
-| ---------------- | -------- | -------- | ------------------------- |
-| `from`           | `string` | Yes      | Source currency code      |
-| `to`             | `string` | Yes      | Target currency code      |
-| `currencyAmount` | `number` | Yes      | Amount to convert         |
-| `exchangeRate`   | `number` | Yes      | Your custom exchange rate |
+| Param            | Type               | Required | Description                                                     |
+| :--------------- | :----------------- | :------- | :-------------------------------------------------------------- |
+| `from`           | `string`           | Yes      | Source currency code (e.g., `"USD"`)                            |
+| `to`             | `string`           | No       | Target currency code (defaults to `"KGS"`)                      |
+| `currencyAmount` | `number \| string` | Yes      | Amount to convert (accepts numbers or strings with dots/commas) |
+| `currencies`     | `Array`            | No       | Array of rates from `getDailyRates()` / `getWeeklyRates()`      |
+| `exchangeRate`   | `number \| string` | No       | Custom exchange rate (if not using live `currencies`)           |
+| `nominal`        | `number \| string` | No       | Nominal for custom rate (default is `1`)                        |
 
-**Returns:** `ExchangeResult` (synchronous)
+**Returns:** `ExchangeResult`
+
+```ts
+interface ExchangeSuccess {
+	result: string;
+	currencyCode: string;
+}
+
+interface ExchangeError {
+	error: string;
+}
+
+type ExchangeResult = ExchangeSuccess | ExchangeError;
+```
 
 ### Constants (`SUPPORTED_CURRENCIES`, `Currency`)
 
@@ -112,23 +128,20 @@ Converts an currencyAmount using a manually provided exchange rate.
 
 ### ⚠️ CORS Limitation for Frontend Use
 
-If you call `exchangeByNBKR` directly from a browser-based frontend (React, Vue, Svelte, etc.), the request **will fail with a CORS error**. NBKR's servers do not send the required `Access-Control-Allow-Origin` header, so browsers block direct requests from third-party origins.
+If you call `getDailyRates` or `getWeeklyRates` directly from a browser-based frontend (React, Vue, Svelte, etc.), the request will fail with a CORS error. NBKR's servers do not send the required `Access-Control-Allow-Origin` header, so browsers block direct requests from third-party origins.
 
 #### Solution 1 — Recommended: Server-Side Route
 
-Call `exchangeByNBKR` from your backend, not from the browser. For example:
+Call `getDailyRates` or `getWeeklyRates` from your backend, not from the browser. For example:
 
 ```js
 // pages/api/rates.js (Next.js API Route)
-import { exchangeByNBKR } from "nomad-rates";
+import { getDailyRates, exchangeCurrency } from "nomad-rates";
 
-export default async function handler(req, res) {
-	const result = await exchangeByNBKR({
-		from: "USD",
-		to: "KGS",
-		currencyAmount: 1,
-	});
-	res.status(200).json(result);
+async function convertAmount(from, to, amount) {
+	// Получаем курсы (или берем из кэша/БД) и считаем без лишней магии
+	const { currencies } = await getDailyRates();
+	return exchangeCurrency({ from, to, currencyAmount: amount, currencies });
 }
 ```
 
@@ -164,7 +177,7 @@ This reduces latency, avoids unnecessary dependency on NBKR's uptime, and protec
 
 ### ⚠️ API Uptime & Availability
 
-This library depends on the [NBKR website](https://www.nbkr.kg/) for live exchange rates. The author makes no guarantees about API availability, uptime, or rate freshness. If NBKR changes their site structure or experiences downtime, this library may temporarily stop working. For production-critical applications, consider using `exchangeByCustom` with your own data source as a fallback.
+This library depends on the [NBKR website](https://www.nbkr.kg/) for live exchange rates. The author makes no guarantees about API availability, uptime, or rate freshness. If NBKR changes their site structure or experiences downtime, this library may temporarily stop working. For production-critical applications, consider using `exchangeCurrency` with your own data source or database cache as a fallback.
 
 ## Contributing
 

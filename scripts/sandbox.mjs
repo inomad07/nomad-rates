@@ -1,70 +1,48 @@
 import {
-	exchangeByNBKR,
-	exchangeByNBKRWeekly,
-} from "../src/utils/exchangeByNBKR.mjs";
-import { exchangeByCustom } from "../src/utils/exchangeByCustom.mjs";
-import { SUPPORTED_CURRENCIES, Currency } from "../src/constants/index.mjs";
+	getDailyRates,
+	getWeeklyRates,
+	exchangeCurrency,
+	SUPPORTED_CURRENCIES,
+	Currency,
+} from "../src/index.mjs";
 
-async function testDailyConversion() {
-	console.log("--- Starting daily conversion test ---");
-
-	const inputUsd = {
-		currencyAmount: "100",
-		currencyCode: "USD",
-		from: "USD",
-		to: "KGS",
-	};
-
-	const inputEur = {
-		currencyAmount: "100",
-		currencyCode: "EUR",
-		from: "EUR",
-		to: "KGS",
-	};
-
+async function testDailyRates() {
+	console.log("--- Starting daily rates test ---");
 	try {
-		console.log("Request (USD):", inputUsd);
-		const resultUsd = await exchangeByNBKR(inputUsd);
-		console.log("Result for USD:", resultUsd);
+		const dailyData = await getDailyRates();
+		console.log("Daily rates response:", dailyData);
 
-		const resultEur = await exchangeByNBKR(inputEur);
-		console.log("Result for EUR:", resultEur);
-
-		if (resultUsd?.result && resultEur?.result) {
-			console.log("Test passed: Daily rates converted successfully.");
+		if (dailyData?.currencies && Array.isArray(dailyData.currencies)) {
+			console.log(
+				`✔ Test passed: Fetched ${dailyData.currencies.length} daily currencies for date ${dailyData.date}`
+			);
 		} else {
-			console.log("Error: Invalid daily calculation result.");
+			console.error("✖ Error: Invalid daily rates structure.");
 		}
 	} catch (error) {
-		console.error("Daily conversion test error:", error.message);
+		console.error("Daily rates test error:", error.message);
 	}
 }
 
-async function testWeeklyConversion() {
-	console.log("\n--- Starting weekly conversion test ---");
-
-	const inputWeekly = {
-		currencyAmount: "100",
-		currencyCode: "GBP",
-		from: "GBP",
-		to: "KGS",
-	};
-
+async function testWeeklyRates() {
+	console.log("\n--- Starting weekly rates test ---");
 	try {
-		const result = await exchangeByNBKRWeekly(inputWeekly);
-		console.log("Weekly Result for GBP:", result);
+		const weeklyData = await getWeeklyRates();
+		console.log("Weekly rates response:", weeklyData);
 
-		if (result?.result) {
-			console.log("Test passed: Weekly rate converted successfully.");
+		if (weeklyData?.currencies && Array.isArray(weeklyData.currencies)) {
+			console.log(
+				`✔ Test passed: Fetched ${weeklyData.currencies.length} weekly currencies for date ${weeklyData.date}`
+			);
 		} else {
-			console.log("Error: Invalid weekly calculation result.");
+			console.error("✖ Error: Invalid weekly rates structure.");
 		}
 	} catch (error) {
-		console.error("Weekly conversion test error:", error.message);
+		console.error("Weekly rates test error:", error.message);
 	}
 }
 
-async function testCustomConversion() {
+function testCustomConversion() {
 	console.log("\n--- Starting custom conversion test ---");
 
 	const customInput = {
@@ -90,18 +68,18 @@ async function testCustomConversion() {
 	};
 
 	try {
-		const { result: resUsd } = exchangeByCustom(customInput);
+		const { result: resUsd } = exchangeCurrency(customInput);
 		console.log("Custom USD calculation (200 * 88.50):", resUsd);
 
-		const { result: resGbp } = exchangeByCustom(customGbpInput);
+		const { result: resGbp } = exchangeCurrency(customGbpInput);
 		console.log("Custom GBP calculation (100 * 117.50):", resGbp);
 
-		const { result: resKzt } = exchangeByCustom(customKztInput);
+		const { result: resKzt } = exchangeCurrency(customKztInput);
 		console.log("Custom KZT calculation (5000 / 100 * 18.50):", resKzt);
 
-		const isUsdOk = resUsd === 17700;
-		const isGbpOk = resGbp === 11750;
-		const isKztOk = resKzt === 925;
+		const isUsdOk = Number(resUsd) === 17700;
+		const isGbpOk = Number(resGbp) === 11750;
+		const isKztOk = Number(resKzt) === 925;
 
 		if (isUsdOk && isGbpOk && isKztOk) {
 			console.log(
@@ -117,51 +95,36 @@ async function testCustomConversion() {
 
 function testSupportedCurrencies() {
 	console.log("\n--- Starting Supported Currencies Test ---");
-	console.log("SUPPORTED_CURRENCIES:", SUPPORTED_CURRENCIES);
-
 	if (
 		Array.isArray(SUPPORTED_CURRENCIES) &&
 		SUPPORTED_CURRENCIES.length > 0
 	) {
 		console.log(
-			`Supported currencies: ${SUPPORTED_CURRENCIES.length} - ✔ Test passed: SUPPORTED_CURRENCIES is a valid non-empty array.`
+			`Supported currencies: ${SUPPORTED_CURRENCIES.length} - ✔ Test passed.`
 		);
 	} else {
-		console.error(
-			"✖ Error: SUPPORTED_CURRENCIES array is invalid or empty."
-		);
+		console.error("✖ Error: SUPPORTED_CURRENCIES array is invalid.");
 	}
 }
 
 function testCurrencyObject() {
 	console.log("\n--- Starting Currency Object Test ---");
-	console.log("Currency lookup samples:", {
-		USD: Currency.USD,
-		EUR: Currency.EUR,
-		KZT: Currency.KZT,
-		KGS: Currency.KGS,
-	});
-
 	if (
 		Currency.USD === "USD" &&
 		Currency.EUR === "EUR" &&
 		Currency.KZT === "KZT" &&
 		Currency.KGS === "KGS"
 	) {
-		console.log(
-			`Supported currencies: ${
-				Object.keys(Currency).length
-			} - ✔ Test passed: Currency lookup object works correctly.`
-		);
+		console.log("✔ Test passed: Currency lookup object works correctly.");
 	} else {
 		console.error("✖ Error: Currency lookup object failed.");
 	}
 }
 
 async function main() {
-	await testDailyConversion();
-	await testWeeklyConversion();
-	await testCustomConversion();
+	await testDailyRates();
+	await testWeeklyRates();
+	testCustomConversion();
 	testSupportedCurrencies();
 	testCurrencyObject();
 }
