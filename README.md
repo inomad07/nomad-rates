@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/npm/dt/nomad-rates.svg)](https://www.npmjs.com/package/nomad-rates)
 [![License: ISC](https://img.shields.io/npm/l/nomad-rates.svg)](LICENSE)
 
-A lightweight, ESM-native JavaScript library for currency conversion. Get real-time exchange rates from the **National Bank of the Kyrgyz Republic (NBKR)** — or plug in your own custom rates for full control.
+**A lightweight, ESM-native library with built-in TypeScript support** for currency conversion. Get real-time exchange rates from the **National Bank of the Kyrgyz Republic (NBKR)** — or plug in your own custom rates for full control.
 
 ## Features
 
@@ -72,6 +72,10 @@ console.log(Currency.USD);
 ```
 
 ## API Reference
+
+### 📦 TypeScript Support
+
+The library is written in clean JavaScript, but **TypeScript definitions are included out of the box (`index.d.ts`)**. You get full IntelliSense, autocompletion, and type safety in TS projects without installing any additional `@types` packages.
 
 ### `getDailyRates()` & `getWeeklyRates()`
 

@@ -1,13 +1,13 @@
 {
 	"name": "nomad-rates",
-	"version": "0.4.0",
-	"description": "Professional library for KG SOM currency rates and conversion",
+	"version": "0.4.1",
+	"description": "Professional JavaScript and TypeScript library for KG SOM currency rates and conversion",
 	"type": "module",
 	"main": "src/index.mjs",
-	"types": "src/types.d.ts",
+	"types": "src/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./src/types.d.ts",
+			"types": "./src/index.d.ts",
 			"import": "./src/index.mjs"
 		}
 	},
@@ -25,7 +25,10 @@
 		"kyrgyzstan",
 		"converter",
 		"finance",
-		"som"
+		"som",
+		"typescript",
+		"types",
+		"esm"
 	],
 	"author": "Nomad",
 	"license": "ISC",
