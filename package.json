@@ -1,6 +1,6 @@
 {
 	"name": "nomad-rates",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Professional JavaScript and TypeScript library for KG SOM currency rates and conversion",
 	"type": "module",
 	"main": "src/index.mjs",

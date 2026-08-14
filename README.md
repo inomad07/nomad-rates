@@ -143,7 +143,7 @@ Call `getDailyRates` or `getWeeklyRates` from your backend, not from the browser
 import { getDailyRates, exchangeCurrency } from "nomad-rates";
 
 async function convertAmount(from, to, amount) {
-	// Получаем курсы (или берем из кэша/БД) и считаем без лишней магии
+	// Fetch rates (or get from cache/DB) and calculate without extra magic
 	const { currencies } = await getDailyRates();
 	return exchangeCurrency({ from, to, currencyAmount: amount, currencies });
 }
